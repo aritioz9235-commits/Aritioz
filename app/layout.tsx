@@ -13,7 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Untitled site',
+  title: 'Aritioz — Creative Intelligence Studio',
+  description:
+    'Aritioz blends strategy, design, and AI to build intelligent digital experiences.',
 };
 
 export default function RootLayout({
