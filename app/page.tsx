@@ -11,9 +11,12 @@ import {
   Sparkles,
   Workflow,
 } from 'lucide-react';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { LaunchOSWorkspace } from '@/components/launchos-workspace';
 
 export default function Home() {
   return (
+    <Dialog>
     <main>
       <section className="hero" id="home">
         <div className="hero-backdrop" aria-hidden="true" />
@@ -33,9 +36,9 @@ export default function Home() {
             <a href="#capabilities">Capabilities</a>
           </nav>
 
-          <a className="header-cta" href="#contact">
+          <DialogTrigger className="header-cta">
             Start a project <ArrowUpRight size={15} />
-          </a>
+          </DialogTrigger>
         </header>
 
         <div className="hero-side hero-side-left" aria-hidden="true">
@@ -58,9 +61,9 @@ export default function Home() {
             digital experiences built to evolve.
           </p>
           <div className="hero-actions">
-            <a className="button button-primary" href="#contact">
+            <DialogTrigger className="button button-primary">
               Build with Aritioz <ArrowUpRight size={17} />
-            </a>
+            </DialogTrigger>
             <a className="button button-ghost" href="#capabilities">
               <span className="play-icon"><Play size={14} fill="currentColor" /></span>
               Explore our work
@@ -89,20 +92,27 @@ export default function Home() {
       </section>
 
       <section className="definition section-pad" id="about">
+        <div className="definition-backdrop" aria-hidden="true" />
+        <div className="definition-overlay" aria-hidden="true" />
         <div className="definition-glow" aria-hidden="true" />
         <div className="shell">
-          <p className="section-kicker">The idea behind Aritioz</p>
-          <div className="definition-title">
-            <h2>Aritioz</h2>
-            <p><span>/ ar·i·ti·oz /</span> noun · creative intelligence</p>
-          </div>
-          <p className="definition-copy">
-            The point where imagination meets intelligence—and a bold idea
-            becomes a clear, useful, beautifully engineered experience.
-          </p>
-          <div className="definition-note">
-            <span>Not just a name.</span>
-            <strong>A way of moving ideas forward.</strong>
+          <div className="definition-frame">
+            <div className="definition-intro">
+              <p className="section-kicker">The idea behind Aritioz</p>
+              <p className="definition-index">02 / 04</p>
+            </div>
+            <div className="definition-title">
+              <h2>Aritioz</h2>
+              <p><span>/ ar·i·ti·oz /</span> noun · creative intelligence</p>
+            </div>
+            <p className="definition-copy">
+              The point where imagination meets intelligence—and a bold idea
+              becomes a clear, useful, beautifully engineered experience.
+            </p>
+            <div className="definition-note">
+              <span>Not just a name.</span>
+              <strong>A way of moving ideas forward.</strong>
+            </div>
           </div>
         </div>
       </section>
@@ -186,15 +196,23 @@ export default function Home() {
       </section>
 
       <section className="contact-section" id="contact">
-        <div className="contact-orbit" aria-hidden="true" />
-        <div className="shell contact-inner">
-          <p className="section-kicker">A new idea deserves momentum</p>
-          <h2>Bring us the impossible.</h2>
-          <p>We&apos;ll help you turn it into something people can see, use, and believe in.</p>
-          <a className="button button-primary" href="mailto:hello@aritioz.com">
+        <div className="project-noise" aria-hidden="true" />
+        <div className="shell contact-cta">
+          <p className="section-kicker">Ready to turn an idea into a business?</p>
+          <h2>Your commerce workspace<br />starts here.</h2>
+          <DialogTrigger className="button button-primary">
             Start a project <ArrowUpRight size={17} />
-          </a>
+          </DialogTrigger>
         </div>
+        <DialogContent className="project-dialog" showCloseButton={false}>
+          <div className="project-dialog-topbar">
+            <div><DialogTitle>Seller Commerce OS</DialogTitle><DialogDescription>Brand, store, sales and customers—in one workspace.</DialogDescription></div>
+            <DialogClose className="project-dialog-close" aria-label="Close project workspace">×</DialogClose>
+          </div>
+          <div className="project-shell">
+          <LaunchOSWorkspace />
+          </div>
+        </DialogContent>
       </section>
 
       <footer className="footer">
@@ -208,5 +226,6 @@ export default function Home() {
         </div>
       </footer>
     </main>
+    </Dialog>
   );
 }
