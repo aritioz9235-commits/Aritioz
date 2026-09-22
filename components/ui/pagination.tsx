@@ -55,6 +55,8 @@ function PaginationLink({
       className={cn(className)}
       nativeButton={false}
       render={
+        // Content is supplied through Base UI's render prop by the Button children.
+        // oxlint-disable-next-line jsx-a11y/anchor-has-content
         <a
           aria-current={isActive ? 'page' : undefined}
           data-slot="pagination-link"

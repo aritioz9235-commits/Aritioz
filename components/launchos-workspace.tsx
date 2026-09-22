@@ -1,129 +1,189 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
-  ArrowUpRight,
-  BadgeIndianRupee,
-  Bot,
-  Box,
-  ChartNoAxesCombined,
-  CircleDollarSign,
-  ClipboardList,
-  Globe2,
-  Image,
-  LayoutDashboard,
+  ArrowUp,
+  BookOpen,
+  BriefcaseBusiness,
+  ChevronDown,
+  CircleHelp,
+  FolderKanban,
+  Lightbulb,
+  Menu,
   MessageCircle,
-  Package,
-  Palette,
-  Send,
-  ShoppingBag,
+  Mic,
+  MoreHorizontal,
+  PenLine,
+  Plus,
+  Search,
   Sparkles,
-  Store,
-  WandSparkles,
+  X,
 } from 'lucide-react';
+import { sendChatMessage } from '@/lib/chat-api';
+import { readImageFile } from '@/lib/image-file';
 
-const modules = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, eyebrow: 'LaunchOS overview', title: 'Good evening, Ansh.', description: 'Your brand is taking shape. Complete the next step to publish your store.' },
-  { id: 'brand', label: 'AI Brand Studio', icon: Palette, eyebrow: 'Create your identity', title: 'Build a brand people remember.', description: 'Generate a name, logo, tagline, colours, fonts and story from one product photo.' },
-  { id: 'products', label: 'Product Studio', icon: Package, eyebrow: 'Product intelligence', title: 'Turn a product into a listing.', description: 'Improve images, write titles and descriptions, and assign the right category.' },
-  { id: 'packaging', label: 'Packaging Studio', icon: Box, eyebrow: 'Packaging concepts', title: 'Make every unboxing feel premium.', description: 'Create box, bottle, label and pouch mockups in your brand language.' },
-  { id: 'pricing', label: 'Pricing Assistant', icon: CircleDollarSign, eyebrow: 'Smart pricing', title: 'Price for profitable growth.', description: 'Calculate cost, margins, discounts and a clear selling-price recommendation.' },
-  { id: 'store', label: 'Store Builder', icon: Store, eyebrow: 'Your storefront', title: 'Launch a store in minutes.', description: 'Choose a template, add your catalogue, and set up cart, checkout and your domain.' },
-  { id: 'content', label: 'AI Content Studio', icon: Image, eyebrow: 'Content engine', title: 'Create content that keeps selling.', description: 'Plan Instagram posts, captions, ads and Reels scripts for every product launch.' },
-  { id: 'whatsapp', label: 'WhatsApp Selling', icon: Send, eyebrow: 'Direct selling', title: 'Close the conversation faster.', description: 'Share your catalogue, reply to enquiries and send order notifications on WhatsApp.' },
-  { id: 'agent', label: 'AI Sales Agent', icon: Bot, eyebrow: 'Phase 3 / Growth', title: 'Let your store answer while you build.', description: 'Handle product questions, collect leads, follow up and recover abandoned carts.' },
-  { id: 'orders', label: 'Order Management', icon: ShoppingBag, eyebrow: 'Fulfilment', title: 'Every order, under control.', description: 'Track new, confirmed, shipped, delivered and returned orders in one place.' },
-  { id: 'analytics', label: 'Analytics', icon: ChartNoAxesCombined, eyebrow: 'Business intelligence', title: 'Know what drives your growth.', description: 'See sales, visitors, popular products, conversion and profit at a glance.' },
-  { id: 'plans', label: 'Plans & billing', icon: BadgeIndianRupee, eyebrow: 'LaunchOS plans', title: 'Choose the pace that fits your business.', description: 'Start free, then unlock more product capacity and growth tools as you scale.' },
+const savedProjects = [
+  'Aria Essentials launch',
+  'Brand identity direction',
+  'Product listing refresh',
+  'Diwali campaign ideas',
+  'Store homepage copy',
 ];
 
-const moduleFeatures: Record<string, string[]> = {
-  brand: ['AI brand name, logo and tagline', 'Colour palette and font pairing', 'Brand story and downloadable kit'],
-  products: ['Background removal and image enhancement', 'Bilingual title and product description', 'Suggested category and product details'],
-  packaging: ['Box, bottle, label and pouch concepts', 'Ready-to-review visual mockups', 'Consistent brand colours and typography'],
-  pricing: ['Cost and profit-margin calculator', 'Discount planning', 'Suggested selling price'],
-  store: ['Store template and custom domain', 'Catalogue, cart and checkout', 'Shareable seller store link'],
-  content: ['Instagram posts and captions', 'Ad copy and Reels scripts', 'Campaign-ready content calendar'],
-  whatsapp: ['Shareable WhatsApp catalogue', 'Enquiry replies and quick responses', 'Order notification templates'],
-  agent: ['Product question replies', 'Lead collection and follow-ups', 'Cart-recovery prompts'],
-  orders: ['New to delivered order status', 'Payment and customer details', 'Returns overview'],
-  analytics: ['Sales and visitor trends', 'Popular products and conversion', 'Profit insights'],
-};
-
-const plans = [
-  ['Free', '₹0', '3 products · basic store'],
-  ['Launch Pack', '₹499', 'Brand kit · store launch'],
-  ['Seller Pro', '₹999/mo', '50 products · AI content · WhatsApp'],
-  ['Business', '₹2,999/mo', '500 products · analytics · Sales Agent'],
-  ['Agency', '₹7,999/mo', 'Multiple brands · white-label'],
-];
+const recentProjects = ['New skincare collection', 'Customer reply templates'];
 
 export function LaunchOSWorkspace() {
-  const [activeId, setActiveId] = useState('dashboard');
-  const active = modules.find((module) => module.id === activeId) ?? modules[0];
-  const Icon = active.icon;
+  const [mode, setMode] = useState<'chat' | 'work'>('chat');
+  const [prompt, setPrompt] = useState('');
+  const [submitted, setSubmitted] = useState('');
+  const [answer, setAnswer] = useState('');
+  const [answerMeta, setAnswerMeta] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [image, setImage] = useState<{ name: string; dataUrl: string } | null>(null);
+  const [attachmentError, setAttachmentError] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  async function submitPrompt(event: React.SyntheticEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const value = prompt.trim();
+    if (!value || loading) return;
+    setSubmitted(value);
+    setAnswer('');
+    setAnswerMeta('');
+    setError('');
+    setLoading(true);
+    setPrompt('');
+    try {
+      const reply = await sendChatMessage(value, undefined, undefined, image?.dataUrl);
+      setAnswer(reply.response);
+      setAnswerMeta(`${reply.provider} · ${reply.model}`);
+      setImage(null);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Aritioz could not complete that request.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function startNewProject() {
+    setSubmitted('');
+    setAnswer('');
+    setAnswerMeta('');
+    setError('');
+    setAttachmentError('');
+    setImage(null);
+    setPrompt('');
+    setMode('chat');
+  }
+
+  async function selectImage(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setAttachmentError('');
+    setImageLoading(true);
+    try {
+      const dataUrl = await readImageFile(file);
+      setImage({ name: file.name, dataUrl });
+    } catch (selectionError) {
+      setImage(null);
+      setAttachmentError(selectionError instanceof Error ? selectionError.message : 'The image could not be attached.');
+    } finally {
+      setImageLoading(false);
+    }
+  }
 
   return (
-    <div className="dashboard-preview launchos-workspace" aria-label="Aritioz LaunchOS seller workspace">
-      <div className="dashboard-topbar">
-        <span className="dashboard-brand"><Sparkles size={15} /> aritioz <em>LaunchOS</em></span>
-        <span className="dashboard-avatar">AK</span>
-      </div>
-      <div className="dashboard-body">
-        <aside className="dashboard-sidebar">
-          <span className="sidebar-label">Seller workspace</span>
-          <nav aria-label="LaunchOS modules">
-            {modules.map((module) => {
-              const NavIcon = module.icon;
-              return <button key={module.id} className={activeId === module.id ? 'active' : ''} onClick={() => setActiveId(module.id)}><NavIcon size={15} />{module.label}</button>;
-            })}
-          </nav>
-        </aside>
-        <div className="dashboard-main">
-          {activeId === 'dashboard' ? <DashboardHome onNavigate={setActiveId} /> : activeId === 'plans' ? <Plans /> : <ModuleView active={active} Icon={Icon} />}
+    <section className="aritioz-chat" aria-label="Aritioz project workspace">
+      <aside className={`chat-sidebar${sidebarOpen ? ' mobile-open' : ''}`}>
+        <div className="chat-sidebar-brand">
+          <Sparkles size={18} strokeWidth={1.9} />
+          <span>Aritioz</span>
+        </div>
+        <div className="chat-sidebar-tools" aria-label="Workspace tools">
+          <button aria-label="Search projects"><Search size={18} /></button>
+          <button aria-label="Toggle sidebar" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen((open) => !open)}><Menu size={18} /></button>
+        </div>
+
+        <button className="new-project-button" onClick={startNewProject}>
+          <PenLine size={18} /> New project
+        </button>
+        <nav className="chat-navigation" aria-label="Project navigation">
+          <button><BookOpen size={18} /> Library</button>
+          <button><FolderKanban size={18} /> Projects</button>
+          <button><BriefcaseBusiness size={18} /> Workspace</button>
+          <button><CircleHelp size={18} /> Help</button>
+          <button><MoreHorizontal size={18} /> More</button>
+        </nav>
+
+        <div className="chat-history">
+          <p>Pinned</p>
+          {savedProjects.map((project) => (
+            <button key={project} onClick={() => setSubmitted(project)}>
+              <MessageCircle size={17} /> {project}
+            </button>
+          ))}
+        </div>
+        <div className="chat-history chat-recents">
+          <p>Recents</p>
+          {recentProjects.map((project) => <button key={project} onClick={() => setSubmitted(project)}>{project}</button>)}
+        </div>
+        <button className="chat-profile" aria-label="Open Anshuman Bharti profile">
+          <span>AB</span><div><strong>Anshuman Bharti</strong><small>Creator plan</small></div>
+        </button>
+      </aside>
+
+      <div className="chat-main">
+        <div className="chat-mobile-bar">
+          <Sparkles size={17} /><strong>Aritioz</strong>
+          <button aria-label="Open menu" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(true)}><Menu size={19} /></button>
+        </div>
+        <div className="chat-mode-switch" role="tablist" aria-label="Workspace mode">
+          <button role="tab" aria-selected={mode === 'chat'} className={mode === 'chat' ? 'active' : ''} onClick={() => setMode('chat')}>Chat</button>
+          <button role="tab" aria-selected={mode === 'work'} className={mode === 'work' ? 'active' : ''} onClick={() => setMode('work')}>Work</button>
+        </div>
+
+        <div className="chat-canvas">
+          {submitted ? (
+            <div className="chat-response" aria-live="polite">
+              <div className="response-prompt">{submitted}</div>
+              <div className="response-card"><Sparkles size={20} /><div>
+                <strong>{loading ? 'Thinking…' : error ? 'Something went wrong' : 'Aritioz'}</strong>
+                <p>{loading ? 'Creating your response.' : error || answer}</p>
+                {answerMeta && <small>{answerMeta}</small>}
+              </div></div>
+            </div>
+          ) : (
+            <h2>{mode === 'chat' ? 'What would you like to create?' : 'What are you working on today?'}</h2>
+          )}
+
+          {(image || imageLoading || attachmentError) && (
+            <div className="chat-attachment-status" aria-live="polite">
+              {imageLoading && <span>Preparing image…</span>}
+              {image && <span>{image.name}<button type="button" aria-label="Remove attached image" onClick={() => setImage(null)}><X size={14} /></button></span>}
+              {attachmentError && <span className="attachment-error">{attachmentError}</span>}
+            </div>
+          )}
+
+          <form className="chat-composer" onSubmit={submitPrompt}>
+            <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={selectImage} />
+            <button type="button" className="composer-add" aria-label="Add a JPEG, PNG, or WebP image" disabled={loading || imageLoading} onClick={() => imageInputRef.current?.click()}><Plus size={22} /></button>
+            <input value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="Ask Aritioz" aria-label="Ask Aritioz" disabled={loading} />
+            <button type="button" className="composer-mode">Creative <ChevronDown size={15} /></button>
+            <button type="button" className="composer-mic" aria-label="Use voice input"><Mic size={20} /></button>
+            <button type="submit" className="composer-send" aria-label="Send prompt" disabled={loading || imageLoading || !prompt.trim()}><ArrowUp size={19} /></button>
+          </form>
+
+          {!submitted && (
+            <button className="chat-suggestion" onClick={() => setPrompt('Help me plan the launch for Aria Essentials')}>
+              <Lightbulb size={24} /> <span>Help me plan the launch for Aria Essentials</span>
+            </button>
+          )}
         </div>
       </div>
-    </div>
+    </section>
   );
-}
-
-function DashboardHome({ onNavigate }: { onNavigate: (id: string) => void }) {
-  return <>
-    <div className="dashboard-welcome">
-      <div><p>Sunday, 7 September</p><h3>Good evening, Ansh.</h3></div>
-      <button onClick={() => onNavigate('products')}>+ Add product</button>
-    </div>
-    <div className="quick-start-card">
-      <div><span>LaunchOS / MVP</span><h4>Your store is 72% ready</h4><p>Upload one product, build your brand, then publish your mini-store.</p></div>
-      <Sparkles size={28} />
-    </div>
-    <div className="metric-grid">
-      <article><span>Today&apos;s sales</span><strong>₹ 12,480</strong><em>+18.4%</em></article>
-      <article><span>New orders</span><strong>24</strong><em>+12 today</em></article>
-      <article><span>Store visits</span><strong>1,284</strong><em>+26.8%</em></article>
-    </div>
-    <div className="dashboard-lower">
-      <article className="product-card"><span>Featured product</span><div className="product-image"><Package size={26} /></div><strong>Organic Face Serum</strong><p>₹ 899 · 18 in stock</p></article>
-      <article className="agent-card"><div><MessageCircle size={18} /><span>Next launch step</span></div><strong>Use AI Brand Studio to create your first brand kit.</strong><button onClick={() => onNavigate('brand')}>Create brand <ArrowUpRight size={14} /></button></article>
-    </div>
-    <div className="launch-roadmap"><span>Launch roadmap</span><strong>Phase 1: LaunchOS</strong><p>Product upload → brand → mini-store → payments → orders.</p></div>
-  </>;
-}
-
-function ModuleView({ active, Icon }: { active: typeof modules[number]; Icon: typeof Sparkles }) {
-  const features = moduleFeatures[active.id] ?? [];
-  return <div className="module-view">
-    <div className="module-hero"><div><p>{active.eyebrow}</p><h3>{active.title}</h3><span>{active.description}</span></div><Icon size={32} /></div>
-    <div className="module-feature-list">
-      {features.map((feature, index) => <article key={feature}><span>0{index + 1}</span><strong>{feature}</strong><WandSparkles size={17} /></article>)}
-    </div>
-    <div className="module-note"><ClipboardList size={17} /><span>MVP focus: make this task simple, fast and ready to publish.</span></div>
-  </div>;
-}
-
-function Plans() {
-  return <div className="plans-view">
-    <div className="module-hero"><div><p>LaunchOS pricing</p><h3>Start free. Scale when ready.</h3><span>Transaction fee: 1–2% on successful orders.</span></div><BadgeIndianRupee size={32} /></div>
-    <div className="plan-grid">{plans.map(([name, price, copy]) => <article key={name}><span>{name}</span><strong>{price}</strong><p>{copy}</p></article>)}</div>
-  </div>;
 }

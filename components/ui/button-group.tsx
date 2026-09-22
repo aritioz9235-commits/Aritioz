@@ -28,7 +28,9 @@ function ButtonGroup({
   ...props
 }: React.ComponentProps<'div'> & VariantProps<typeof buttonGroupVariants>) {
   return (
+    // A div preserves the component's public prop contract and avoids fieldset defaults.
     <div
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
       role="group"
       data-slot="button-group"
       data-orientation={orientation}

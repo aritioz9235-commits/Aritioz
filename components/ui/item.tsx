@@ -8,7 +8,9 @@ import { Separator } from '@/components/ui/separator';
 
 function ItemGroup({ className, ...props }: React.ComponentProps<'div'>) {
   return (
+    // Items may render polymorphically, so a native list would create invalid children.
     <div
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
       role="list"
       data-slot="item-group"
       className={cn(

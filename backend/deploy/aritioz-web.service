@@ -1,0 +1,28 @@
+[Unit]
+Description=Aritioz Vinext frontend
+After=network-online.target aritioz-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=aritioz
+Group=aritioz
+WorkingDirectory=/opt/aritioz
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npm run start:vps
+Restart=on-failure
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+ReadOnlyPaths=/opt/aritioz
+
+[Install]
+WantedBy=multi-user.target

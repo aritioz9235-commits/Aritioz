@@ -1,0 +1,1 @@
+"""Aritioz AI backend."""

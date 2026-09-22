@@ -199,7 +199,7 @@ export default function Home() {
         <div className="project-noise" aria-hidden="true" />
         <div className="shell contact-cta">
           <p className="section-kicker">Ready to turn an idea into a business?</p>
-          <h2>Your commerce workspace<br />starts here.</h2>
+          <h2>Your Aritioz workspace<br />starts here.</h2>
           <DialogTrigger className="button button-primary">
             Start a project <ArrowUpRight size={17} />
           </DialogTrigger>
