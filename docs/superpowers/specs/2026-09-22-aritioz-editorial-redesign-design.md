@@ -55,6 +55,19 @@ Seller Commerce OS appears as a dedicated case-study section and the primary pro
 
 A small product-tour control lets visitors move among three representative views. The interface stays readable, is fully keyboard-operable, and becomes a straightforward stacked presentation on mobile. The workspace is embedded within this section; it no longer appears as an accidental consequence of the global Start a project action.
 
+### Seller Commerce OS Interface
+
+The workspace shown in the supplied screenshot will be visually redesigned without removing its chat, image attachment, mode switching, saved-project selection, or backend response behavior.
+
+- The product receives its own identity lockup and a compact contextual top bar so it reads as a real Aritioz product rather than a generic chat clone.
+- The sidebar becomes narrower and more structured, with a clear New project action, grouped navigation, compact project history, an active state, and a quieter account area. On mobile it behaves as an accessible dismissible drawer with a backdrop.
+- The empty center canvas gains an editorial welcome block, a short explanation of what the workspace can do, and a small set of useful starter actions. This removes the excessive dead space visible in the current interface.
+- The composer becomes a deliberate working surface with stronger contrast, a multiline input, attachment preview, selected working mode, and an unambiguous send state.
+- The Chat and Work modes have meaningful visual and content differences. Work mode presents an organized project view rather than only changing the headline.
+- Submitted prompts and generated answers use a readable conversation layout with clear authorship, status, error feedback, and response metadata.
+- The interface uses warm neutral surfaces, graphite text, and the same electric cobalt accent as the marketing site. Borders, radii, shadows, and icon sizes follow a small token set instead of appearing ad hoc.
+- At showcase scale, the workspace preserves readable type and controls; it does not shrink a desktop UI until the content becomes decorative or illegible.
+
 ### Final CTA
 
 The closing section centers on “Ready to turn an idea into a business?” with a cinematic but restrained composition: oversized typography, a shifting crop of existing Aritioz imagery, and one high-value Start a project action. Motion is subtle and disabled for reduced-motion users.
