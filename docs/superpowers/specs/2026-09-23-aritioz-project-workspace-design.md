@@ -38,8 +38,9 @@ the existing Start a project dialog. Its internal layout is rebuilt as follows:
 
 ### Sidebar
 
-The fixed left rail contains the Aritioz wordmark, search/sidebar controls, a
-selected **New chat** action, and the navigation items Images, Library,
+The fixed left rail contains the **Aritioz** wordmark at its upper-left edge
+(directly replacing the reference screenshot's “ChatGPT” label), search/sidebar
+controls, a selected **New chat** action, and the navigation items Images, Library,
 Scheduled, Plugins, Projects, Codex, and More. A profile block and Upgrade
 action anchor the bottom. Existing saved/recent project data remains available
 under the Projects area rather than competing with the reference's primary
