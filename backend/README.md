@@ -5,6 +5,17 @@ Gemini, NVIDIA/Nemotron, and local Ollama are selected through server-only
 environment variables. In `auto` mode, temporary provider failures fall through
 the configured order; explicit provider requests never silently switch.
 
+The Work workspace can read and save existing text files and run the fixed
+`npm test`, lint, TypeScript, and build commands when `WORKSPACE_ROOT` points to
+a local project and `APP_ENV=development`. It stays disabled in production and
+when no workspace root is configured. `.git`, dependency/build folders, hidden
+files, and `.env*` files are excluded. Saves require the user to press Save;
+commands are selected and launched explicitly from the workspace UI. For local
+frontend/backend development, set `NEXT_PUBLIC_AI_BACKEND_URL=http://127.0.0.1:8000`,
+`ALLOWED_ORIGINS=http://localhost:3000`, `APP_ENV=development`, and
+`WORKSPACE_ROOT=/absolute/path/to/project` in the root `.env` before starting
+the frontend and backend.
+
 ## Local setup
 
 From the project root:
@@ -15,7 +26,8 @@ python3 -m venv .venv
 . .venv/bin/activate
 pip install -r backend/requirements.txt
 cp .env.example .env
-# Edit .env and add only the provider keys/models you intend to use.
+# For local Work mode, set APP_ENV=development and WORKSPACE_ROOT to the project directory.
+# Add only the provider keys/models you intend to use.
 PYTHONPATH=backend uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
@@ -37,6 +49,30 @@ PYTHONPATH=backend pytest backend/tests -q
 
 Without valid keys or a running Ollama model, `/api/chat` correctly returns a
 sanitized `503` response.
+
+## Persistence, authentication, and migrations
+
+The optional persistence layer uses SQLAlchemy async with Supabase PostgreSQL.
+Set `DATABASE_URL`, `SUPABASE_URL`, and either `SUPABASE_JWT_SECRET` (HS256
+projects) or a Supabase URL that exposes JWKS. The service never sends
+`SUPABASE_SERVICE_ROLE_KEY` to the browser. Redis, storage, and embeddings are
+optional in local development and fail closed for protected operations.
+
+From `backend/`, with the backend virtual environment active:
+
+```bash
+alembic upgrade head
+alembic current
+alembic history
+```
+
+Generate future migrations with `alembic revision -m "describe the change"`.
+The migration enables `pgvector` and creates users, organizations, memberships,
+workspaces, conversations, messages, files, document chunks, usage logs, and
+subscription-ready tables. Persistent chat is available at
+`POST /api/conversations/{conversation_id}/chat` with a Supabase bearer token;
+all conversation, file, and vector queries enforce organization/workspace
+membership on the backend.
 
 ## VPS deployment
 

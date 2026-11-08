@@ -16,6 +16,13 @@ npm install
 npm run dev
 ```
 
+`npm run dev` starts both the frontend and the local FastAPI backend. The
+backend dependencies must be installed in `.venv` first:
+
+```bash
+python3 -m pip install --target .venv/lib/python3.12/site-packages -r backend/requirements.txt
+```
+
 For the backend, copy `backend/.env.example` to `backend/.env` and fill in
 local credentials. Never commit real secrets or API keys.
 

@@ -16,6 +16,7 @@ class ProviderRouter:
 
     async def available_models(self) -> list[dict[str, object]]:
         output = []
+        logger.info("Configured AI providers: order=%s default=%s", self.settings.provider_order, self.settings.ai_default_provider)
         for name in self.settings.provider_order:
             provider = self.providers.get(name)
             if not provider:
@@ -23,6 +24,7 @@ class ProviderRouter:
             models = await provider.list_models()
             if models:
                 output.append({"provider": name, "models": models})
+        logger.info("Available AI providers: %s", [item["provider"] for item in output])
         return output
 
     async def chat(self, request: ChatRequest) -> ChatResult:
@@ -35,6 +37,7 @@ class ProviderRouter:
             order = self.settings.provider_order
             default = self.settings.ai_default_provider.strip().lower()
             candidates = [default, *[name for name in order if name != default]]
+        logger.info("AI provider request: configured_order=%s candidates=%s", self.settings.provider_order, candidates)
 
         last_error: ProviderError | None = None
         for name in candidates:
@@ -51,10 +54,12 @@ class ProviderRouter:
                     if explicit:
                         raise ProviderError("Unsupported model", retryable=False, status_code=400)
                     continue
-                return await provider.chat(request)
+                result = await provider.chat(request)
+                logger.info("Selected AI provider: provider=%s model=%s", result.provider, result.model)
+                return result
             except ProviderError as exc:
                 last_error = exc
-                logger.warning("AI provider %s failed (retryable=%s)", name, exc.retryable)
+                logger.warning("AI provider %s failed (retryable=%s); fallback_reason=%s", name, exc.retryable, str(exc))
                 if explicit or not exc.retryable:
                     raise
         raise last_error or ProviderError("No configured AI provider is available", retryable=True)

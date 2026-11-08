@@ -31,6 +31,7 @@ class ChatRequest(BaseModel):
     top_p: float = Field(default=0.95, gt=0, le=1)
     image_url: str | None = Field(default=None, max_length=MAX_IMAGE_DATA_URL_CHARS)
     reasoning_budget: int | None = Field(default=None, ge=1, le=65536)
+    conversation_id: str | None = None
 
     @field_validator("message")
     @classmethod

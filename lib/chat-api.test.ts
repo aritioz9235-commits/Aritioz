@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { sendChatMessage } from './chat-api';
+import { extractWorkFileDraft, sendChatMessage } from './chat-api';
 import { validateImageFile } from './image-file';
 
 describe('sendChatMessage', () => {
@@ -22,6 +22,24 @@ describe('sendChatMessage', () => {
     );
   });
 
+  it('sends engineering-task instructions only when Work mode is selected', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ success: true, provider: 'gemini', model: 'configured', response: 'Reviewing the task.' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await sendChatMessage('Fix the navigation bug', '', undefined, undefined, 'work');
+
+    const request = fetchMock.mock.calls[0][1] as RequestInit;
+    const body = JSON.parse(request.body as string) as { system_prompt?: string; max_tokens?: number };
+    expect(body.system_prompt).toContain('You are Aritioz Work');
+    expect(body.system_prompt).toContain('Never invent a path or claim');
+    expect(body.max_tokens).toBe(8192);
+  });
+
   it('returns a readable API error without leaking unknown response fields', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ error: { message: 'No AI provider is currently available' }, secret: 'hidden' }), {
@@ -31,6 +49,13 @@ describe('sendChatMessage', () => {
     ));
 
     await expect(sendChatMessage('Hello')).rejects.toThrow('No AI provider is currently available');
+  });
+
+  it('explains when the backend cannot be reached', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+    await expect(sendChatMessage('Hello', 'https://api.example.com')).rejects.toThrow(
+      'Aritioz backend is unreachable',
+    );
   });
 
   it('includes a validated image data URL in the chat request', async () => {
@@ -57,5 +82,14 @@ describe('sendChatMessage', () => {
     expect(() => validateImageFile({ type: 'image/svg+xml', size: 100 })).toThrow(/JPEG, PNG, or WebP/);
     expect(() => validateImageFile({ type: 'image/png', size: 5 * 1024 * 1024 + 1 })).toThrow(/5 MB/);
     expect(() => validateImageFile({ type: 'image/webp', size: 1024 })).not.toThrow();
+  });
+});
+
+describe('extractWorkFileDraft', () => {
+  it('extracts only a complete replacement for the currently opened path', () => {
+    const answer = 'I updated the file.\n<<<FILE:src/page.tsx>>>\nexport default 1;\n<<<END_FILE>>>\nDone.';
+    expect(extractWorkFileDraft(answer, 'src/page.tsx')).toBe('export default 1;');
+    expect(extractWorkFileDraft(answer, 'src/other.tsx')).toBeNull();
+    expect(extractWorkFileDraft('<<<FILE:src/page.tsx>>>\npartial', 'src/page.tsx')).toBeNull();
   });
 });

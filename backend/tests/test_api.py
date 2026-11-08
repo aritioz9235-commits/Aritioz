@@ -99,6 +99,54 @@ async def test_chat_validates_requests(settings: Settings, payload: dict, expect
 
 
 @pytest.mark.anyio
+async def test_workspace_is_disabled_in_production(tmp_path) -> None:
+    settings = Settings(app_env="production", workspace_root=str(tmp_path), allowed_origins="http://localhost:3000")
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=create_app(settings=settings, providers={})),
+        base_url="http://test",
+    ) as client:
+        response = await client.get("/api/workspace/status")
+    assert response.json() == {"enabled": False, "root_name": None}
+
+
+@pytest.mark.anyio
+async def test_workspace_lists_reads_and_saves_only_project_files(settings: Settings, tmp_path) -> None:
+    source = tmp_path / "src"
+    source.mkdir()
+    file_path = source / "main.ts"
+    file_path.write_text("const value = 1;", encoding="utf-8")
+    (tmp_path / ".env.local").write_text("secret", encoding="utf-8")
+    settings.workspace_root = str(tmp_path)
+    app = create_app(settings=settings, providers={})
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
+        headers = {"Origin": "http://localhost:3000"}
+        files = await client.get("/api/workspace/files", headers=headers)
+        opened = await client.get("/api/workspace/file", params={"path": "src/main.ts"}, headers=headers)
+        saved = await client.put("/api/workspace/file", json={"path": "src/main.ts", "content": "const value = 2;"}, headers=headers)
+        traversal = await client.get("/api/workspace/file", params={"path": "../outside.txt"}, headers=headers)
+        hidden = await client.get("/api/workspace/file", params={"path": ".env.local"}, headers=headers)
+    assert files.json()["files"] == [{"path": "src", "kind": "directory"}]
+    assert opened.json()["content"] == "const value = 1;"
+    assert saved.json()["saved"] is True
+    assert file_path.read_text(encoding="utf-8") == "const value = 2;"
+    assert traversal.json().get("content") is None
+    assert hidden.json().get("content") is None
+
+
+@pytest.mark.anyio
+async def test_workspace_rejects_unapproved_origins_and_commands(settings: Settings, tmp_path) -> None:
+    settings.workspace_root = str(tmp_path)
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=create_app(settings=settings, providers={})),
+        base_url="http://test",
+    ) as client:
+        rejected_origin = await client.post("/api/workspace/command", json={"command": "rm"}, headers={"Origin": "https://attacker.example"})
+        rejected_command = await client.post("/api/workspace/command", json={"command": "rm"}, headers={"Origin": "http://localhost:3000"})
+    assert "allowed app origin" in rejected_origin.json()["error"]
+    assert "allowlist" in rejected_command.json()["error"]
+
+
+@pytest.mark.anyio
 async def test_rejects_unsupported_provider(settings: Settings) -> None:
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=create_app(settings=settings, providers={})),

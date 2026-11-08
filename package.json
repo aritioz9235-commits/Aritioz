@@ -6,7 +6,8 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "vinext dev",
+    "dev": "bash scripts/dev-all.sh",
+    "dev:frontend": "vinext dev",
     "build": "vinext build",
     "build:vps": "ARITIOZ_DEPLOY_TARGET=node vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",

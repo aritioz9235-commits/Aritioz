@@ -52,9 +52,29 @@ export default defineConfig(async () => {
 
   return {
     css: { postcss: { plugins: [tailwindcss()] } },
-    server: isCodexSeatbeltSandbox
-      ? { watch: { useFsEvents: false, usePolling: true } }
-      : undefined,
+    server: {
+      proxy: {
+        '/api': {
+          target: process.env.AI_BACKEND_URL ?? 'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
+        '/health': {
+          target: process.env.AI_BACKEND_URL ?? 'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
+      },
+      watch: {
+        ignored: [
+          '**/backend/.venv/**',
+          '**/.venv/**',
+          '**/__pycache__/**',
+          '**/node_modules/**',
+        ],
+        ...(isCodexSeatbeltSandbox
+          ? { useFsEvents: false, usePolling: true }
+          : {}),
+      },
+    },
     plugins: [vinext(), sites(), ...(cloudflarePlugin ? [cloudflarePlugin] : [])],
   };
 });

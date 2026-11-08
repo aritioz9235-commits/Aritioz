@@ -1,3 +1,8 @@
+'use client';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   ArrowDown,
   ArrowRight,
@@ -8,15 +13,51 @@ import {
   Layers3,
   PenTool,
   Play,
-  Sparkles,
   Workflow,
 } from 'lucide-react';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { LaunchOSWorkspace } from '@/components/launchos-workspace';
+import { useDoubleClickBack } from '@/hooks/use-double-click-back';
+import { navigateWorkspaceBack } from '@/lib/double-click-back';
 
 export default function Home() {
+  const router = useRouter();
+  const [workspaceOpen, setWorkspaceOpen] = useState(false);
+  const workspaceEntry = useRef<string | null>(null);
+
+  const goBack = useCallback(() => {
+    navigateWorkspaceBack(window.history, workspaceEntry.current ?? '', (route) => {
+      setWorkspaceOpen(false);
+      router.push(route);
+    });
+  }, [router]);
+  const onWorkspaceDoubleClick = useDoubleClickBack(goBack);
+
+  useEffect(() => {
+    const syncWorkspaceWithHistory = () => {
+      const state = window.history.state as { aritiozWorkspace?: string } | null;
+      setWorkspaceOpen(Boolean(workspaceEntry.current && state?.aritiozWorkspace === workspaceEntry.current));
+    };
+    window.addEventListener('popstate', syncWorkspaceWithHistory);
+    return () => window.removeEventListener('popstate', syncWorkspaceWithHistory);
+  }, []);
+
+  const onWorkspaceOpenChange = useCallback((open: boolean) => {
+    if (open) {
+      const entry =
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      workspaceEntry.current = entry;
+      window.history.pushState({ ...window.history.state, aritiozWorkspace: entry }, '', window.location.href);
+      setWorkspaceOpen(true);
+    } else {
+      goBack();
+    }
+  }, [goBack]);
+
   return (
-    <Dialog>
+    <Dialog open={workspaceOpen} onOpenChange={onWorkspaceOpenChange}>
     <main>
       <section className="hero" id="home">
         <div className="hero-backdrop" aria-hidden="true" />
@@ -24,10 +65,8 @@ export default function Home() {
 
         <header className="site-header shell">
           <a className="brand" href="#home" aria-label="Aritioz home">
-            <span className="brand-mark">
-              <Sparkles size={18} strokeWidth={1.7} />
-            </span>
-            <span>Aritioz</span>
+            <span className="brand-mark"><Image src="/aritioz-earth-emblem.png" width={34} height={34} alt="" unoptimized /></span>
+            <Image className="brand-logo" src="/aritioz-wordmark.png" width={387} height={90} alt="" unoptimized />
           </a>
 
           <nav className="nav-links" aria-label="Primary navigation">
@@ -51,10 +90,10 @@ export default function Home() {
         </div>
 
         <div className="hero-content shell">
-          <p className="eyebrow">Designing what comes next</p>
           <h1>
-            Where ideas become
-            <span>intelligent.</span>
+            <span className="hero-title-line">Where ideas</span>
+            <span className="hero-title-line">become</span>
+            <span className="hero-title-line hero-title-accent">intelligent.</span>
           </h1>
           <p className="hero-copy">
             Aritioz blends strategy, design, and AI to turn ambitious ideas into
@@ -92,6 +131,16 @@ export default function Home() {
       </section>
 
       <section className="definition section-pad" id="about">
+        <Image
+          className="definition-artwork"
+          src="/aritioz-definition-lettering-v2.png"
+          width={1672}
+          height={941}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+        />
         <div className="definition-backdrop" aria-hidden="true" />
         <div className="definition-overlay" aria-hidden="true" />
         <div className="definition-glow" aria-hidden="true" />
@@ -106,8 +155,9 @@ export default function Home() {
               <p><span>/ ar·i·ti·oz /</span> noun · creative intelligence</p>
             </div>
             <p className="definition-copy">
-              The point where imagination meets intelligence—and a bold idea
-              becomes a clear, useful, beautifully engineered experience.
+              The point where imagination meets intelligence
+              <br className="definition-break" />—and a bold idea becomes a clear,
+              <br className="definition-break" /> useful, beautifully engineered experience.
             </p>
             <div className="definition-note">
               <span>Not just a name.</span>
@@ -196,18 +246,23 @@ export default function Home() {
       </section>
 
       <section className="contact-section" id="contact">
-        <div className="project-noise" aria-hidden="true" />
+        <Image
+          src="/aritioz-workspace-starts-here.png"
+          alt=""
+          fill
+          sizes="100vw"
+        />
+        <div className="contact-banner">
+          <h2>Your Aritioz workspace starts here.</h2>
+        </div>
         <div className="shell contact-cta">
-          <p className="section-kicker">Ready to turn an idea into a business?</p>
-          <h2>Your Aritioz workspace<br />starts here.</h2>
           <DialogTrigger className="button button-primary">
             Start a project <ArrowUpRight size={17} />
           </DialogTrigger>
         </div>
-        <DialogContent className="project-dialog" showCloseButton={false}>
+        <DialogContent className="project-dialog" showCloseButton={false} onDoubleClick={onWorkspaceDoubleClick}>
           <div className="project-dialog-topbar">
             <div><DialogTitle>Seller Commerce OS</DialogTitle><DialogDescription>Brand, store, sales and customers—in one workspace.</DialogDescription></div>
-            <DialogClose className="project-dialog-close" aria-label="Close project workspace">×</DialogClose>
           </div>
           <div className="project-shell">
           <LaunchOSWorkspace />
@@ -218,8 +273,8 @@ export default function Home() {
       <footer className="footer">
         <div className="shell footer-inner">
           <a className="brand" href="#home" aria-label="Back to top">
-            <span className="brand-mark"><Sparkles size={18} strokeWidth={1.7} /></span>
-            <span>Aritioz</span>
+            <span className="brand-mark"><Image src="/aritioz-earth-emblem.png" width={34} height={34} alt="" unoptimized /></span>
+            <Image className="brand-logo" src="/aritioz-wordmark.png" width={387} height={90} alt="" unoptimized />
           </a>
           <p>Creative intelligence for what comes next.</p>
           <span>© 2026 Aritioz</span>

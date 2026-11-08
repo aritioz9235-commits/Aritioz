@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="water" x1="23" y1="18" x2="87" y2="96" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7de7fa"/>
+      <stop offset=".4" stop-color="#0ea5e9"/>
+      <stop offset="1" stop-color="#1553bd"/>
+    </linearGradient>
+    <path id="wave" d="M60 12C87 12 108 33 108 60C108 71 104 81 98 89C103 67 90 45 69 43C54 41 44 50 44 61C36 42 42 24 60 12Z"/>
+  </defs>
+  <circle cx="60" cy="60" r="60" fill="white"/>
+  <g fill="url(#water)">
+    <use href="#wave"/>
+    <use href="#wave" transform="rotate(120 60 60)"/>
+    <use href="#wave" transform="rotate(240 60 60)"/>
+  </g>
+</svg>

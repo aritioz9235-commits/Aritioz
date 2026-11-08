@@ -23,3 +23,29 @@ class InMemoryRateLimiter:
                 return False
             timestamps.append(now)
             return True
+
+
+class RedisRateLimiter:
+    """Atomic fixed-window limiter with an in-memory fallback when Redis is unavailable."""
+
+    def __init__(self, url: str, limit: int, window_seconds: int):
+        self.limit = limit
+        self.window_seconds = window_seconds
+        self._fallback = InMemoryRateLimiter(limit, window_seconds)
+        try:
+            import redis.asyncio as redis
+            self._client = redis.from_url(url, decode_responses=True)
+        except ImportError:
+            self._client = None
+
+    async def allow(self, key: str) -> bool:
+        if self._client is None:
+            return await self._fallback.allow(key)
+        redis_key = f"aritioz:ratelimit:{key}"
+        try:
+            count = await self._client.incr(redis_key)
+            if count == 1:
+                await self._client.expire(redis_key, self.window_seconds)
+            return count <= self.limit
+        except Exception:
+            return await self._fallback.allow(key)
