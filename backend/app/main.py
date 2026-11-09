@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.config import Settings, get_settings
-from app.auth import AuthenticatedUser, get_current_user
+from app.auth import AuthenticatedUser, get_current_user, router as auth_router
 from app.conversations import router as conversations_router
 from app.files import router as files_router
 from app.rag import router as rag_router
@@ -46,6 +46,7 @@ def create_app(settings: Settings | None = None, providers: Mapping[str, AIProvi
     app = FastAPI(title="Aritioz AI API", version="1.0.0", docs_url=None if config.app_env == "production" else "/docs")
     app.state.settings = config
     app.state.session_factory = build_session_factory(config.async_database_url)
+    app.include_router(auth_router)
     app.include_router(workspace_router)
     app.include_router(conversations_router)
     app.include_router(files_router)
@@ -87,7 +88,14 @@ def create_app(settings: Settings | None = None, providers: Mapping[str, AIProvi
             client_key = request.client.host if request.client else "unknown"
             if not await limiter.allow(client_key):
                 return error_response(429, "RATE_LIMITED", "Too many requests; try again shortly")
-        return await call_next(request)
+        response = await call_next(request)
+        # API responses must be safe even when the reverse proxy is bypassed.
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
+        response.headers.setdefault("Cache-Control", "no-store" if request.url.path.startswith("/api/auth") else "no-cache")
+        return response
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_: Request, __: RequestValidationError):

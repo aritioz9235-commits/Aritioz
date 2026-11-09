@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import asyncio
+import hmac
 import os
 import subprocess
 from pathlib import Path
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.config import Settings
@@ -34,7 +35,11 @@ class RunCommandRequest(BaseModel):
 
 
 def root_for(config: Settings) -> Path | None:
-    if config.app_env.lower() == "production" or not config.workspace_root.strip():
+    if (
+        config.app_env.lower() == "production"
+        or not config.workspace_root.strip()
+        or not config.workspace_access_token.strip()
+    ):
         return None
     root = Path(config.workspace_root).expanduser().resolve()
     return root if root.is_dir() else None
@@ -56,6 +61,22 @@ def allowed_origin(request: Request, config: Settings) -> bool:
     return bool(origin and origin in config.cors_origins)
 
 
+def is_loopback_request(request: Request) -> bool:
+    """Keep the development-only workspace capability off the network."""
+    client = request.client
+    return client is not None and client.host in {"127.0.0.1", "::1", "localhost"}
+
+
+def require_workspace_access(request: Request, config: Settings) -> None:
+    if not is_loopback_request(request):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Workspace access is available only from this machine")
+    if not allowed_origin(request, config):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Workspace requests must come from an allowed app origin")
+    supplied = request.headers.get("X-Workspace-Token", "")
+    if not supplied or not hmac.compare_digest(supplied, config.workspace_access_token):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Workspace access token is required")
+
+
 @router.get("/status")
 async def workspace_status(request: Request):
     config = request.app.state.settings
@@ -69,8 +90,7 @@ async def workspace_files(request: Request, path: str = ""):
     root = root_for(config)
     if root is None:
         return {"enabled": False, "files": []}
-    if not allowed_origin(request, config):
-        return {"error": "Workspace requests must come from an allowed app origin."}
+    require_workspace_access(request, config)
     folder = safe_path(root, path)
     if folder is None or not folder.is_dir():
         return {"error": "Folder was not found in the connected workspace."}
@@ -94,8 +114,7 @@ async def read_workspace_file(request: Request, path: str):
     root = root_for(config)
     if root is None:
         return {"error": "Local workspace is not enabled."}
-    if not allowed_origin(request, config):
-        return {"error": "Workspace requests must come from an allowed app origin."}
+    require_workspace_access(request, config)
     file_path = safe_path(root, path)
     if file_path is None or not file_path.is_file() or file_path.stat().st_size > MAX_FILE_BYTES:
         return {"error": "File was not found or is too large to open."}
@@ -111,8 +130,7 @@ async def save_workspace_file(request: Request, payload: SaveFileRequest):
     root = root_for(config)
     if root is None:
         return {"error": "Local workspace is not enabled."}
-    if not allowed_origin(request, config):
-        return {"error": "Workspace requests must come from an allowed app origin."}
+    require_workspace_access(request, config)
     file_path = safe_path(root, payload.path)
     if file_path is None or not file_path.is_file() or file_path.stat().st_size > MAX_FILE_BYTES:
         return {"error": "Only existing project files up to 512 KB can be edited."}
@@ -126,8 +144,7 @@ async def run_workspace_command(request: Request, payload: RunCommandRequest):
     root = root_for(config)
     if root is None:
         return {"error": "Local workspace is not enabled."}
-    if not allowed_origin(request, config):
-        return {"error": "Workspace requests must come from an allowed app origin."}
+    require_workspace_access(request, config)
     argv = COMMANDS.get(payload.command)
     if argv is None:
         return {"error": "That command is not in the workspace allowlist."}

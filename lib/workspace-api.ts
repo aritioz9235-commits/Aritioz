@@ -6,7 +6,11 @@ export interface WorkspaceFile {
 }
 
 async function requestWorkspace<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${getBackendBaseUrl()}/api/workspace${path}`, init);
+  const workspaceToken = process.env.NEXT_PUBLIC_WORKSPACE_ACCESS_TOKEN;
+  if (!workspaceToken) throw new Error('Workspace access is not configured.');
+  const headers = new Headers(init?.headers);
+  headers.set('X-Workspace-Token', workspaceToken);
+  const response = await fetch(`${getBackendBaseUrl()}/api/workspace${path}`, { ...init, headers });
   const payload = await response.json().catch(() => ({})) as T & { error?: string };
   if (!response.ok || payload.error) throw new Error(payload.error || 'Workspace request failed.');
   return payload;

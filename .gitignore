@@ -12,6 +12,7 @@
 /coverage
 .python-packages/
 .venv/
+.postgres-data/
 __pycache__/
 .pytest_cache/
 

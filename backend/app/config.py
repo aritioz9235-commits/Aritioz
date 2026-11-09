@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     allowed_origins: str = "http://localhost:3000,http://localhost:5173"
     backend_base_url: str = ""
     workspace_root: str = ""
+    # Deliberately separate from user credentials: this capability can modify a
+    # developer's local checkout and must never be enabled accidentally.
+    workspace_access_token: str = ""
     database_url: str = ""
     content_data_source: str = "database"
     db_env: str = "staging"
@@ -38,6 +41,8 @@ class Settings(BaseSettings):
     supabase_anon_key: str = ""
     supabase_service_role_key: str = ""
     supabase_jwt_secret: str = ""
+    jwt_secret: str = ""
+    jwt_access_token_expire_minutes: int = Field(default=60 * 24 * 7, ge=5, le=60 * 24 * 60)
     redis_url: str = ""
     redis_enabled: bool = True
     redis_cache_ttl_seconds: int = Field(default=60, ge=1, le=86400)

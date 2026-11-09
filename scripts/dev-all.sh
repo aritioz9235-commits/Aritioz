@@ -14,7 +14,9 @@ if ! .venv/bin/python -c 'import fastapi, uvicorn' >/dev/null 2>&1; then
   exit 1
 fi
 
-PYTHONPATH=backend .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 &
+# Reload the API in development so newly-added routes (such as authentication)
+# are served without leaving an old FastAPI process running.
+PYTHONPATH=backend .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload --reload-dir backend &
 backend_pid=$!
 
 for attempt in {1..30}; do

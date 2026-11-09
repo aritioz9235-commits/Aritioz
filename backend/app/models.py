@@ -25,6 +25,8 @@ class User(TimestampMixin, Base):
     email: Mapped[str] = mapped_column(String(320))
     display_name: Mapped[str | None] = mapped_column(String(200))
     avatar_url: Mapped[str | None] = mapped_column(String(2048))
+    # Kept separate from external identity ids so existing Supabase users remain valid.
+    password_hash: Mapped[str | None] = mapped_column(String(256))
 
 
 class Profile(TimestampMixin, Base):

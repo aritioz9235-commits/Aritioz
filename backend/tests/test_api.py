@@ -40,6 +40,7 @@ def settings() -> Settings:
         max_input_chars=100,
         rate_limit_requests=100,
         rate_limit_window_seconds=60,
+        workspace_access_token="test-workspace-token",
     )
 
 
@@ -119,7 +120,7 @@ async def test_workspace_lists_reads_and_saves_only_project_files(settings: Sett
     settings.workspace_root = str(tmp_path)
     app = create_app(settings=settings, providers={})
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
-        headers = {"Origin": "http://localhost:3000"}
+        headers = {"Origin": "http://localhost:3000", "X-Workspace-Token": "test-workspace-token"}
         files = await client.get("/api/workspace/files", headers=headers)
         opened = await client.get("/api/workspace/file", params={"path": "src/main.ts"}, headers=headers)
         saved = await client.put("/api/workspace/file", json={"path": "src/main.ts", "content": "const value = 2;"}, headers=headers)
@@ -141,9 +142,22 @@ async def test_workspace_rejects_unapproved_origins_and_commands(settings: Setti
         base_url="http://test",
     ) as client:
         rejected_origin = await client.post("/api/workspace/command", json={"command": "rm"}, headers={"Origin": "https://attacker.example"})
-        rejected_command = await client.post("/api/workspace/command", json={"command": "rm"}, headers={"Origin": "http://localhost:3000"})
-    assert "allowed app origin" in rejected_origin.json()["error"]
+        rejected_token = await client.post("/api/workspace/command", json={"command": "rm"}, headers={"Origin": "http://localhost:3000"})
+        rejected_command = await client.post("/api/workspace/command", json={"command": "rm"}, headers={"Origin": "http://localhost:3000", "X-Workspace-Token": "test-workspace-token"})
+    assert rejected_origin.status_code == 403
+    assert rejected_token.status_code == 401
     assert "allowlist" in rejected_command.json()["error"]
+
+
+@pytest.mark.anyio
+async def test_api_security_headers(settings: Settings) -> None:
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=create_app(settings=settings, providers={})),
+        base_url="http://test",
+    ) as client:
+        response = await client.get("/health")
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
 
 
 @pytest.mark.anyio

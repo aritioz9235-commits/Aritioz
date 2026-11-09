@@ -1,16 +1,17 @@
 @import 'tailwindcss';
 
 :root {
-  --background: #030711;
-  --foreground: #f2f7ff;
-  --surface: #08111f;
-  --surface-soft: rgba(10, 24, 43, 0.72);
-  --muted: #9aacc2;
-  --line: rgba(168, 204, 255, 0.2);
-  --line-bright: rgba(140, 220, 255, 0.54);
-  --cyan: #85e9ff;
-  --blue: #538cff;
-  --violet: #8874ff;
+  /* Aritioz wordmark palette: ink-black navy with a cool electric blue glow. */
+  --background: #01050d;
+  --foreground: #edf5ff;
+  --surface: #06101e;
+  --surface-soft: rgba(6, 16, 30, 0.78);
+  --muted: #93a9c2;
+  --line: rgba(95, 167, 255, 0.2);
+  --line-bright: rgba(112, 185, 255, 0.55);
+  --cyan: #78c6ff;
+  --blue: #4e9dff;
+  --violet: #719aff;
   --radius: 1rem;
 }
 
@@ -45,8 +46,8 @@ a { color: inherit; text-decoration: none; }
   isolation: isolate;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 68%, rgba(55, 128, 255, 0.22), transparent 31%),
-    linear-gradient(180deg, #020712 0%, #07142a 64%, #061021 100%);
+    radial-gradient(circle at 50% 68%, rgba(50, 132, 255, 0.18), transparent 31%),
+    linear-gradient(180deg, #01040a 0%, #041225 64%, #030b16 100%);
 }
 
 .hero::after {
@@ -134,7 +135,6 @@ a { color: inherit; text-decoration: none; }
 .nav-links a:focus-visible { color: white; }
 
 .header-cta {
-  justify-self: end;
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
@@ -148,6 +148,137 @@ a { color: inherit; text-decoration: none; }
   cursor: pointer;
   transition: background 220ms ease, border-color 220ms ease;
 }
+
+.header-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.header-login {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.72rem 1.15rem;
+  border: 1px solid rgba(185, 219, 255, 0.36);
+  border-radius: 999px;
+  background: rgba(8, 22, 48, 0.36);
+  color: #e7f3ff;
+  font: inherit;
+  font-size: 0.83rem;
+  cursor: pointer;
+  transition: background 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+
+.header-login:hover,
+.header-login:focus-visible {
+  border-color: rgba(155, 203, 255, 0.85);
+  background: rgba(72, 102, 166, 0.34);
+  box-shadow: 0 0 22px rgba(112, 170, 255, 0.2);
+}
+
+.header-register {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.72rem 1.15rem;
+  border: 1px solid rgba(186, 140, 255, 0.7);
+  border-radius: 999px;
+  background: linear-gradient(105deg, rgba(130, 115, 255, 0.42), rgba(197, 122, 255, 0.34));
+  color: #f8f3ff;
+  font: inherit;
+  font-size: 0.83rem;
+  cursor: pointer;
+  box-shadow: 0 0 18px rgba(156, 99, 255, 0.18);
+  transition: filter 220ms ease, box-shadow 220ms ease;
+}
+
+.header-register:hover,
+.header-register:focus-visible { filter: brightness(1.16); box-shadow: 0 0 26px rgba(171, 111, 255, 0.42); }
+
+.login-dialog {
+  isolation: isolate;
+  width: min(100% - 2rem, 1540px) !important;
+  max-width: 1540px !important;
+  min-height: min(100dvh - 2rem, 980px);
+  overflow: hidden;
+  padding: 0 !important;
+  border: 1px solid rgba(100, 152, 255, 0.28);
+  border-radius: 30px !important;
+  background: #061638 !important;
+  color: #f6f8ff !important;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.72), 0 0 80px rgba(72, 86, 255, 0.3);
+}
+
+.login-cosmos {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(3, 9, 38, 0.08), rgba(4, 9, 40, 0.2)),
+    url('/cosmic-login-reference.png') center / cover no-repeat;
+}
+
+.login-cosmos::after {
+  content: '';
+  position: absolute;
+  width: 580px;
+  height: 320px;
+  top: -150px;
+  left: 50%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(207, 161, 255, 0.4) 0%, rgba(95, 80, 255, 0.18) 36%, transparent 70%);
+  filter: blur(15px);
+  transform: translateX(-50%);
+}
+
+.register-dialog .login-cosmos {
+  background:
+    linear-gradient(180deg, rgba(3, 9, 38, 0.08), rgba(4, 9, 40, 0.2)),
+    url('/cosmic-register-reference.png') center / cover no-repeat;
+}
+
+.reset-dialog .login-cosmos {
+  background:
+    linear-gradient(180deg, rgba(3, 9, 38, 0.12), rgba(4, 9, 40, 0.24)),
+    url('/cosmic-login-reference.png') center / cover no-repeat;
+}
+
+.login-card {
+  width: min(100% - 3rem, 525px);
+  margin: clamp(3rem, 15vh, 9rem) auto;
+  padding: 3rem 3.25rem;
+  border: 2px solid rgba(155, 207, 255, 0.76);
+  border-radius: 27px;
+  background: linear-gradient(145deg, rgba(36, 72, 135, 0.87), rgba(14, 28, 86, 0.92));
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.2), 0 24px 65px rgba(0, 0, 20, 0.48), 0 0 35px rgba(103, 141, 255, 0.22);
+  backdrop-filter: blur(19px);
+}
+
+.login-title { color: #fff; font-size: 2.6rem !important; font-weight: 700 !important; text-align: center; }
+.login-title-line { display: block; width: 115px; height: 3px; margin: 0.7rem auto 2rem; border-radius: 999px; background: linear-gradient(90deg, transparent, #d793ff, #895bff, transparent); box-shadow: 0 0 12px #b471ff; }
+.login-field { display: flex; align-items: center; gap: 0.7rem; height: 61px; margin-top: 1.15rem; padding: 0 1.25rem; border: 2px solid #aa75ff; border-radius: 999px; color: #f2f5ff; background: rgba(3, 15, 57, 0.5); box-shadow: inset 0 0 14px rgba(142, 100, 255, 0.12); }
+.login-field input { width: 100%; border: 0; outline: 0; background: transparent; color: white; font: inherit; font-size: 0.92rem; }
+.login-field input::placeholder { color: #d4d8ec; opacity: 1; }
+.login-options { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin: 1.4rem 0 1.6rem; color: #eff2ff; font-size: 0.9rem; }
+.login-options label { display: inline-flex; align-items: center; gap: 0.45rem; }
+.login-options input { accent-color: #a879ff; }
+.login-options button, .login-register button { border: 0; padding: 0; background: transparent; color: #c586ff; font: inherit; font-weight: 650; cursor: pointer; }
+.login-submit { width: 100%; height: 63px; border: 0; border-radius: 999px; background: linear-gradient(105deg, #a7dcff, #9c77ff); color: #091540; font: inherit; font-size: 1.1rem; font-weight: 750; cursor: pointer; box-shadow: 0 9px 22px rgba(111, 105, 255, 0.35); }
+.login-submit:hover, .login-submit:focus-visible { filter: brightness(1.08); }
+.login-submit:disabled { cursor: wait; opacity: 0.7; }
+.auth-error { margin: 0.8rem 0; color: #ffd0da; font-size: 0.86rem; text-align: center; }
+.login-register { margin: 1.7rem 0 0; color: #e5e9fa; font-size: 0.9rem; text-align: center; }
+.register-card { margin-block: clamp(1.8rem, 9vh, 5.5rem); }
+.register-card .login-title-line { margin-bottom: 1.55rem; }
+.register-card .login-field { height: 58px; margin-top: 0.75rem; }
+.register-terms { display: inline-flex; align-items: center; gap: 0.5rem; margin: 1.35rem 0 1.55rem; color: #eef1ff; font-size: 0.88rem; }
+.register-terms input { accent-color: #a879ff; }
+.register-terms button { border: 0; padding: 0; background: transparent; color: #c586ff; font: inherit; font-weight: 650; cursor: pointer; }
+.register-card .login-register { margin-top: 1.35rem; }
+.reset-card { max-width: 540px; margin-block: clamp(4rem, 19vh, 11rem); }
+.reset-card .login-title { font-size: clamp(2rem, 4.5vw, 2.6rem) !important; }
+.reset-copy { max-width: 24rem; margin: -0.55rem auto 1.5rem; color: #dce8ff; font-size: 0.95rem; line-height: 1.55; text-align: center; }
+.reset-submit { margin-top: 1.5rem; }
 
 .header-cta:hover,
 .header-cta:focus-visible {
@@ -1035,8 +1166,15 @@ a { color: inherit; text-decoration: none; }
   .shell { width: min(100% - 32px, 1180px); }
   .site-header { min-height: 76px; grid-template-columns: 1fr auto; }
   .nav-links { display: none; }
+  .header-actions { gap: 0.45rem; }
+  .header-login { padding: 0.6rem 0.85rem; font-size: 0.76rem; }
+  .header-register { padding: 0.6rem 0.85rem; font-size: 0.76rem; }
   .header-cta { font-size: 0; padding: 0.65rem; }
   .header-cta svg { width: 18px; height: 18px; }
+  .login-card { width: min(100% - 2rem, 410px); margin: 2rem auto; padding: 1.8rem 1.35rem; }
+  .register-card { margin: 1rem auto; padding: 1.55rem 1.35rem; }
+  .reset-card { margin: 3rem auto; }
+  .register-card .login-field { height: 52px; }
   .hero-content { padding: 5rem 0 8.5rem; }
   .hero h1 { font-size: clamp(1.8rem, 12.5vw, 5rem); }
   .hero-copy { max-width: 34rem; }
@@ -1307,9 +1445,9 @@ body:has(.project-dialog) [data-slot="dialog-overlay"] {
 .theme-switch-track > span { width: 15px; height: 15px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px #0003; transition: transform 160ms ease; }
 [aria-checked='true'] .theme-switch-track { border-color: #f5f7ff; background: #080f1a; }
 [aria-checked='true'] .theme-switch-track > span { transform: translateX(17px); }
-.aritioz-chat.workspace-dark { color-scheme: dark; color: #e7edf6; background: #080f1a; }
-.workspace-dark .chat-main { background: #080f1a; }
-.workspace-dark .chat-sidebar, .workspace-dark .chat-profile-row, .workspace-dark .chat-profile { background: #101925; border-color: #283445; color: #e7edf6; }
+.aritioz-chat.workspace-dark { color-scheme: dark; color: #eaf4ff; background: #01050d; }
+.workspace-dark .chat-main { background: #01050d; }
+.workspace-dark .chat-sidebar, .workspace-dark .chat-profile-row, .workspace-dark .chat-profile { background: #06101e; border-color: #193758; color: #eaf4ff; }
 .workspace-dark .chat-sidebar-brand, .workspace-dark .chat-canvas h2, .workspace-dark .chat-navigation button, .workspace-dark .chat-navigation button svg, .workspace-dark .chat-mobile-bar { color: #e7edf6; }
 .workspace-dark .new-project-button, .workspace-dark .chat-mode-switch { background: #202c3d; color: #eef3fc; }
 .workspace-dark .chat-navigation button:hover, .workspace-dark .new-project-button:hover, .workspace-dark .chat-sidebar-tools button:hover, .workspace-dark .chat-mobile-bar button:hover { background: #27364a; color: #fff; }
@@ -1361,7 +1499,7 @@ body:has(.project-dialog) [data-slot="dialog-overlay"] {
 
 /* Space artwork stays decorative; all workspace controls remain live. */
 .workspace-space-scene, .workspace-build-label, .workspace-signature { display: none; }
-.workspace-dark .chat-main { isolation: isolate; background: #020914; overflow-y: auto; }
+.workspace-dark .chat-main { isolation: isolate; background: #01050d; overflow-y: auto; }
 .workspace-dark .workspace-space-scene { display: block; position: absolute; inset: 0; min-height: 100%; z-index: -1; overflow: hidden; pointer-events: none; background: linear-gradient(180deg, #00132918, #00061410 55%, #00040b38), url('/aritiouz-orbit.webp') center center / cover no-repeat; }
 .workspace-space-scene::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 43% 6%, #006eff26, transparent 31%), radial-gradient(ellipse at 84% 58%, #0058b51c, transparent 35%); }
 .workspace-space-scene::after { content: ''; position: absolute; inset: 0; opacity: .65; background-image: radial-gradient(1px 1px at 7% 12%, #91cfff 90%, transparent), radial-gradient(1px 1px at 22% 28%, #52a8ff 90%, transparent), radial-gradient(1px 1px at 41% 7%, #88bfff 90%, transparent), radial-gradient(1px 1px at 64% 19%, #a8dfff 90%, transparent), radial-gradient(1px 1px at 89% 47%, #78bbff 90%, transparent), radial-gradient(1px 1px at 12% 65%, #b4dcff 90%, transparent), radial-gradient(1px 1px at 35% 57%, #5695d5 90%, transparent), radial-gradient(1px 1px at 73% 68%, #96ceff 90%, transparent); background-size: 271px 229px; mask-image: linear-gradient(#000, #000 60%, transparent 85%); }
